@@ -39,7 +39,9 @@ class CategoryRow extends React.Component<
     this.itemUpdateListener = () => {
       this._updateGroceryItems();
     };
-    this.props.groceryItemStore.itemListeners.register(this.itemUpdateListener);
+    this.props.groceryItemStore.itemListeners.registerListener(
+      this.itemUpdateListener
+    );
     this.props.groceryItemStore.updateItemsForCategory(
       this.props.categoryName,
       10
@@ -47,7 +49,7 @@ class CategoryRow extends React.Component<
   }
 
   componentWillUnmount() {
-    this.props.groceryItemStore.itemListeners.unregister(
+    this.props.groceryItemStore.itemListeners.unregisterListener(
       this.itemUpdateListener
     );
   }

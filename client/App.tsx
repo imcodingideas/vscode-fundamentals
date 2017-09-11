@@ -23,7 +23,6 @@ interface IAppState {
 }
 
 class App extends React.Component<any, IAppState> {
-
   cartStore = new CartStore();
   groceryItemStore = new GroceryItemStore();
   orderStore = new OrderStore();
@@ -33,12 +32,12 @@ class App extends React.Component<any, IAppState> {
   constructor() {
     super(...arguments);
 
-    this.cartStore.itemListeners.register((newItems: any[]) => {
-      this.setState({cartItems: newItems});
+    this.cartStore.itemListeners.registerListener((newItems: any[]) => {
+      this.setState({ cartItems: newItems });
     });
 
-    this.orderStore.orderListeners.register((newItems: any[]) => {
-      this.setState({orders: newItems});
+    this.orderStore.orderListeners.registerListener((newItems: any[]) => {
+      this.setState({ orders: newItems });
     });
 
     this.state = {
@@ -50,11 +49,12 @@ class App extends React.Component<any, IAppState> {
     this.toggleRightDrawer = this.toggleRightDrawer.bind(this);
     this.closeAllDrawers = this.closeAllDrawers.bind(this);
 
-    this.homeRoute = (prps) => (
+    this.homeRoute = prps => (
       <Home
         cartStore={this.cartStore}
         groceryItemStore={this.groceryItemStore}
-        {...prps} />
+        {...prps}
+      />
     );
   }
 
@@ -74,38 +74,57 @@ class App extends React.Component<any, IAppState> {
 
   render() {
     const wrapperClassNames = ['frontend-grocer'];
-    if (this.state.drawerShowing === 'left') wrapperClassNames.push('show-left-sidedrawer');
-    if (this.state.drawerShowing === 'right') wrapperClassNames.push('show-right-sidedrawer');
+    if (this.state.drawerShowing === 'left')
+      wrapperClassNames.push('show-left-sidedrawer');
+    if (this.state.drawerShowing === 'right')
+      wrapperClassNames.push('show-right-sidedrawer');
     return (
-        <div className={wrapperClassNames.join(' ')}>
-          <SideDrawer side={'left'} drawerShowing={this.state.drawerShowing === 'left'}>
-            <div className='brand mui--appbar-line-height'>
-              <span className='mui--text-title'>📦 Orders</span>
-            </div>
-            <div className='mui-divider'></div>
-            <Orders orders={this.state.orders}/>
-          </SideDrawer>
-          <SideDrawer side={'right'} drawerShowing={this.state.drawerShowing === 'right'}>
-            <div className='brand mui--appbar-line-height'>
-              <span className='mui--text-title'>🛒 Cart</span>
-            </div>
-            <div className='mui-divider'></div>
-            <Cart cartStore={this.cartStore} orderStore={this.orderStore} cartItems={this.state.cartItems} />
-          </SideDrawer>
-          <AppHeader
-            numItemsInCart={this.state.cartItems.length}
-            doLeftToggle={this.toggleLeftDrawer} doRightToggle={this.toggleRightDrawer}></AppHeader>
-          <div className='content-wrapper'>
-            <div className='mui--appbar-height'></div>
-            <Container fluid={true}>
-              <Home groceryItemStore={this.groceryItemStore} cartStore={this.cartStore}/>
-            </Container>
+      <div className={wrapperClassNames.join(' ')}>
+        <SideDrawer
+          side={'left'}
+          drawerShowing={this.state.drawerShowing === 'left'}
+        >
+          <div className="brand mui--appbar-line-height">
+            <span className="mui--text-title">📦 Orders</span>
           </div>
-          <AppFooter></AppFooter>
-          {this.state.drawerShowing
-            ? <div id='mui-overlay' onClick={this.closeAllDrawers}></div>
-            : ''}
+          <div className="mui-divider" />
+          <Orders orders={this.state.orders} />
+        </SideDrawer>
+        <SideDrawer
+          side={'right'}
+          drawerShowing={this.state.drawerShowing === 'right'}
+        >
+          <div className="brand mui--appbar-line-height">
+            <span className="mui--text-title">🛒 Cart</span>
+          </div>
+          <div className="mui-divider" />
+          <Cart
+            cartStore={this.cartStore}
+            orderStore={this.orderStore}
+            cartItems={this.state.cartItems}
+          />
+        </SideDrawer>
+        <AppHeader
+          numItemsInCart={this.state.cartItems.length}
+          doLeftToggle={this.toggleLeftDrawer}
+          doRightToggle={this.toggleRightDrawer}
+        />
+        <div className="content-wrapper">
+          <div className="mui--appbar-height" />
+          <Container fluid={true}>
+            <Home
+              groceryItemStore={this.groceryItemStore}
+              cartStore={this.cartStore}
+            />
+          </Container>
         </div>
+        <AppFooter />
+        {this.state.drawerShowing ? (
+          <div id="mui-overlay" onClick={this.closeAllDrawers} />
+        ) : (
+          ''
+        )}
+      </div>
     );
   }
 }

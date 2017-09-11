@@ -1,7 +1,7 @@
 import ListenerSupport from './listener-support';
 import { endpoint as API_ENDPOINT } from '../utils/api';
 
- /**
+/**
  * A class for keeing track of shopping cart state
  * @public
  */
@@ -25,10 +25,10 @@ export default class CartStore {
      * cart state. This may seem a little strange for now, but it's a "blank"
      * we'll fill in later as we add in offline support
      */
-    this._restoreCart().then((newItems) => {
+    this._restoreCart().then(newItems => {
       // once the promise returned by _restoreCart resolves
       this._items = newItems; // use the value as the contents of the cart
-      this._onItemsUpdated();  // notify anyone who may care about cart contents changing
+      this._onItemsUpdated(); // notify anyone who may care about cart contents changing
     });
   }
 
@@ -52,8 +52,8 @@ export default class CartStore {
    */
   _restoreCart() {
     return fetch(`${API_ENDPOINT}api/cart/items`)
-      .then((response) => response.json())
-      .then((jsonData) => jsonData.data);
+      .then(response => response.json())
+      .then(jsonData => jsonData.data);
   }
 
   /**
@@ -71,9 +71,9 @@ export default class CartStore {
         'content-type': 'application/json'
       },
       body: JSON.stringify(this._items)
-    }).then((response) => response.json())
-      .then((jsonData) => jsonData.data);
-         
+    })
+      .then(response => response.json())
+      .then(jsonData => jsonData.data);
   }
 
   /**
@@ -85,18 +85,19 @@ export default class CartStore {
    */
   doCheckout() {
     return fetch(`${API_ENDPOINT}api/order`, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json'
-            },
-            body: JSON.stringify({ data: this._items })
-          }).then((response) => response.json())
-            .then((jsonData) => jsonData.data)
-            .then(this._restoreCart)
-            .then((newItems) => {
-              this._items = newItems;
-              this._onItemsUpdated();
-            });
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ data: this._items })
+    })
+      .then(response => response.json())
+      .then(jsonData => jsonData.data)
+      .then(this._restoreCart)
+      .then(newItems => {
+        this._items = newItems;
+        this._onItemsUpdated();
+      });
   }
 
   /**
@@ -105,20 +106,11 @@ export default class CartStore {
    */
   addItemToCart(groceryItem) {
     // check to see if this grocery item is already in the cart
-    let existingCartItem = this._items
-      .filter(ci => `${ci.groceryItem.id}` === `${groceryItem.id}`)[0];
-    
-    if (existingCartItem) {
-      // if it's already in the cart, increment its quantity
-      existingCartItem.qty++;
-    } else {
-      // if it's not yet in the cart, add it to the cart
-      let newItem = {
-        groceryItem,
-        qty: 1
-      };
-      this._items = this._items.concat(newItem);
-    }
+    let existingCartItem = this._items.filter(
+      ci => `${ci.groceryItem.id}` === `${groceryItem.id}`
+    )[0];
+
+    this.addOrIncrementCartItem(existingCartItem);
     // persist the cart (i.e., to an API)
     this._saveCart();
   }
@@ -131,11 +123,12 @@ export default class CartStore {
    */
   removeItemFromCart(groceryItem) {
     // find an existing object in the cart corresponding to this grocery item
-    let existingCartItem = this._items
-      .filter(ci => ci.groceryItem.id === groceryItem.id)[0];
-    
+    let existingCartItem = this._items.filter(
+      ci => ci.groceryItem.id === groceryItem.id
+    )[0];
+
     if (!existingCartItem) return; // nothing was in the cart to begin with
-    
+
     // if the existing item found has a quantity > 1
     if (existingCartItem.qty > 1) {
       // decrement the quantity
@@ -143,7 +136,7 @@ export default class CartStore {
     } else {
       // otherwise (i.e., quantity is 1) remove the object from the cart entirely
       // find its index
-      let idx = this._items.findIndex((i) => i.groceryItem.id === groceryItem.id);
+      let idx = this._items.findIndex(i => i.groceryItem.id === groceryItem.id);
       // remove the object in the cart at that index
       this._items.splice(idx, 1);
     }
@@ -158,5 +151,19 @@ export default class CartStore {
    */
   _onItemsUpdated() {
     this.itemListeners.fire(this.items);
+  }
+
+  addOrIncrementCartItem(existingCartItem) {
+    if (existingCartItem) {
+      // if it's already in the cart, increment its quantity
+      existingCartItem.qty++;
+    } else {
+      // if it's not yet in the cart, add it to the cart
+      let newItem = {
+        groceryItem,
+        qty: 1
+      };
+      this._items = this._items.concat(newItem);
+    }
   }
 }
